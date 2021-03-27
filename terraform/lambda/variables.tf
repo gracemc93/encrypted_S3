@@ -1,0 +1,37 @@
+variable "aws_region" {
+  type        = string
+  description = "The AWS region"
+}
+
+variable "source_dir" {
+  type        = string
+  description = "The directory containing the files for the lambda function"
+}
+
+variable "function_name" {
+  type        = string
+  description = "A unique name for your Lambda Function"
+}
+
+variable "handler" {
+  type        = string
+  description = "The function entrypoint in your code"
+  default     = "lambda_function.handle"
+}
+
+variable "runtime" {
+  type        = string
+  description = "The identifier of the function's runtime. https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime"
+}
+
+variable "policies_json_str" {
+  type        = list(string)
+  description = "The required policies(IAM JSON formatted string) for the lambda function"
+  default     = []
+}
+
+variable "timeout" {
+  type        = number
+  description = "The amount of time your Lambda Function has to run in seconds"
+  default     = 900
+}
