@@ -18,14 +18,34 @@ data "aws_iam_policy_document" "aws_lambda_function_assume_role_policy_doc" {
   }
 }
 
-///////////// POLICIES REQUIRED BY THE LAMBDA FUNCTION CODE //////////////////
+resource "aws_iam_policy" "encryption_checker_policy" {
+  name        = "test-policy"
+  description = "A test policy"
 
-//we attach the policies (required for the lambda function) to the role above
-resource "aws_iam_role_policy" "aws_lambda_function_role_policy" {
-  name   = "${local.aws_lambda_function_role_policy_name}-${count.index}"
-  count  = length(var.policies_json_str)
-  policy = var.policies_json_str[count.index]
-  role   = aws_iam_role.aws_lambda_function_role.id
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "s3:GetEncryptionConfiguration",
+            "Resource": "arn:aws:s3:::*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "s3:ListAllMyBuckets",
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "attach_encryption_policy" {
+  role       = aws_iam_role.aws_lambda_function_role.name
+  policy_arn = aws_iam_policy.encryption_checker_policy.arn
 }
 
 //////////////////////////// LAMBDA FUNCTION CODE ////////////////////////////
@@ -33,7 +53,7 @@ resource "aws_iam_role_policy" "aws_lambda_function_role_policy" {
 //we create the deployment package for the lambda function
 data "archive_file" "aws_lambda_function_zip" {
   type        = "zip"
-  source_dir  = var.source_dir
+  source_dir  = "../encryption-checker-lambda"
   output_path = "temp/${local.aws_lambda_function_name}.zip"
 }
 

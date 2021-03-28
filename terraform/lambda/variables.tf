@@ -3,11 +3,6 @@ variable "aws_region" {
   description = "The AWS region"
 }
 
-variable "source_dir" {
-  type        = string
-  description = "The directory containing the files for the lambda function"
-}
-
 variable "function_name" {
   type        = string
   description = "A unique name for your Lambda Function"
