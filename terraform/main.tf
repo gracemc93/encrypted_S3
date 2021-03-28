@@ -1,3 +1,4 @@
+//File from which we call the
 locals {
   bucket_name        = "s3-${var.aws_region}-${terraform.workspace}-encrypted-bucket-test"
   encryption_checker_api_gateway = "api-${var.aws_region}-${terraform.workspace}-encryption-checker"
