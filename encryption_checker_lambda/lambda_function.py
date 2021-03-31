@@ -10,16 +10,16 @@ client = boto3.client('s3')
 
 
 def lambda_handler(event: Dict[str, any], context):
-        if buckets_specified_in(event):
-            bucket_encryption_status = get_specified_bucket_status(buckets=event["Buckets"])
-        else:
-            buckets = get_all_buckets()
-            bucket_encryption_status = get_all_buckets_status(buckets=buckets)
+    if buckets_specified_in(event):
+        bucket_encryption_status = get_specified_bucket_status(buckets=event["Buckets"])
+    else:
+        buckets = get_all_buckets()
+        bucket_encryption_status = get_all_buckets_status(buckets=buckets)
 
-        return {
-            'statusCode': 200,
-            'body': bucket_encryption_status
-        }
+    return {
+        'statusCode': 200,
+        'body': bucket_encryption_status
+    }
 
 
 def buckets_specified_in(event: Dict[str, str]) -> bool:
@@ -67,16 +67,24 @@ def retrieve_encryption_status(bucket_name) -> str:
             return "Not Encrypted"
 
 
-def get_all_buckets() -> Dict[str, str]:
+def get_all_buckets() -> Dict[str, List[Dict[str, str]]]:
     """
     Returns a dictionary of all S3 buckets on the AWS service account.
     """
     return client.list_buckets()
 
 
-def get_all_buckets_status(buckets):
+def get_all_buckets_status(buckets: dict) -> Dict[str, Dict[str, str]]:
+    """
+    Returns the encryption status of each bucket passed in.
+
+    :param buckets: The buckets to get the encryption status for.
+    :return: A dictionary of containing the buckets and their encryption status..
+    """
     bucket_encryption_status = {"Buckets": {}}
+
     for bucket in buckets['Buckets']:
         result = retrieve_encryption_status(bucket['Name'])
         bucket_encryption_status['Buckets'][bucket['Name']] = result
+
     return bucket_encryption_status
