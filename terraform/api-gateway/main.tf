@@ -52,8 +52,7 @@ resource "aws_api_gateway_integration_response" "gateway_integration_response" {
   rest_api_id       = aws_api_gateway_rest_api.api_gateway.id
   resource_id       = aws_api_gateway_resource.api_gateway_resource.id
   http_method       = aws_api_gateway_method.post-method.http_method
-  status_code       = aws_api_gateway_method_response.gateway_method_response_error.status_code
-  selection_pattern = "Bad Input.*"
+  status_code       = aws_api_gateway_method_response.gateway_method_response.status_code
   depends_on = [
     aws_api_gateway_integration.post-integration
   ]
