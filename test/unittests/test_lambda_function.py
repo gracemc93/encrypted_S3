@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import patch
 from typing import Dict, List
 
+from botocore.exceptions import ClientError
 # SUT : System Under Test
 import encryption_checker_lambda.lambda_function as sut
 
@@ -229,6 +230,23 @@ def test_get_specified_bucket_status_with_one_bucket(encryption_status_1, one_bu
         assert actual == expected
 
 
+def test_get_specified_bucket_status_does_not_exist(one_bucket, monkeypatch):
+    """
+    GIVEN: A bucket that does not exist on the AWS service account.
+    WHEN:  Checking for the encryption status of specific buckets.
+    THEN:  Verify the current 'does not exist' string is returned.
+    """
+    expected = {
+        'Buckets': {
+            'test_bucket_1': "Bucket doesn't exist"
+        }
+    }
+
+    monkeypatch.setattr(sut, "retrieve_encryption_status", lambda _: None)
+
+    assert sut.get_specified_bucket_status(one_bucket) == expected
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # get_all_buckets_status tests
 # ----------------------------------------------------------------------------------------------------------------------
@@ -299,3 +317,102 @@ def test_get_all_buckets_status(aws_bucket_dict, patch_path, multiple_buckets, m
     mock_encryption_statuses = ["Encrypted", "Not Encrypted"]
     with patch(f"{patch_path}.retrieve_encryption_status", side_effect=mock_encryption_statuses) as mock:
         assert sut.get_all_buckets_status(aws_bucket_dict()) == expected
+
+
+def test_retrieve_encryption_status(monkeypatch):
+    """
+    GIVEN: A bucket name.
+    WHEN:  Checking the encryption status of the given bucket.
+    THEN:  Check if the correct 'Encrypted' response is returned.
+    """
+    monkeypatch.setattr(sut.client, "get_bucket_encryption", lambda Bucket: None)
+
+    actual = sut.retrieve_encryption_status(bucket_name="TEST")
+
+    assert actual == "Encrypted"
+
+
+def test_retrieve_encryption_status_fail(monkeypatch):
+    """
+    GIVEN: A bucket name.
+    WHEN:  Checking the encryption status of the given bucket.
+    THEN:  Check if the correct 'Not Encrypted' response is returned.
+    """
+
+    def raise_ClientError() -> None:
+        """Creates a Synthetic client error to test exception handling code."""
+        # Create a ClientError
+        err = ClientError({}, {})
+        err.response["Error"] = {}
+        err.response["Error"]["Code"] = 'ServerSideEncryptionConfigurationNotFoundError'
+
+        raise err
+
+    # Mock Boto.client.get_bucket_encryption method.
+    monkeypatch.setattr(sut.client, "get_bucket_encryption", lambda Bucket: raise_ClientError())
+
+    actual = sut.retrieve_encryption_status(bucket_name="TEST")
+
+    assert actual == "Not Encrypted"
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# lambda_handler tests
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def test_lambda_handler(patch_path):
+    """
+    GIVEN: An event with specified bucket names.
+    WHEN:  Executing the lambda.
+    THEN:  Check if the lambda executed as expected.
+    """
+    return_value = "test_body"
+
+    expected_value = {
+        'statusCode': 200,
+        'body': return_value
+    }
+
+    mock_event = {
+        "Buckets": "mock_bucket"
+    }
+
+    # Mock all internal function calls and test they were called with the correct parameters.
+    with patch(f"{patch_path}.buckets_specified_in", return_value=True) as mock_buckets_specified_in:
+        with patch(f"{patch_path}.get_specified_bucket_status", return_value=return_value) as mock_get_specified_bucket_status:
+            assert sut.lambda_handler(mock_event, None) == expected_value
+
+        mock_get_specified_bucket_status.assert_called_with(buckets=mock_event["Buckets"])
+
+    mock_buckets_specified_in.assert_called_with(mock_event)
+
+
+def test_lambda_handler_all_buckets(patch_path, multiple_buckets):
+    """
+    GIVEN: An event with no specified event names.
+    WHEN:  Executing the lambda.
+    THEN:  Check if the lambda executed as expected.
+    """
+    return_value = "test_body"
+
+    expected_value = {
+        'statusCode': 200,
+        'body': return_value
+    }
+
+    mock_event = {
+        "Buckets": "mock_bucket"
+    }
+
+    # Mock all internal function calls and test they were called with the correct parameters.
+    with patch(f"{patch_path}.buckets_specified_in", return_value=False) as mock_buckets_specified_in:
+        with patch(f"{patch_path}.get_all_buckets", return_value=multiple_buckets) as mock_get_all_buckets:
+            with patch(f"{patch_path}.get_all_buckets_status", return_value=return_value) as mock_get_all_buckets_status:
+                assert sut.lambda_handler(mock_event, None) == expected_value
+
+            mock_get_all_buckets_status.assert_called_with(buckets=multiple_buckets)
+
+        mock_get_all_buckets.assert_called_with()
+
+    mock_buckets_specified_in.assert_called_with(mock_event)

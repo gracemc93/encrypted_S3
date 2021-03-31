@@ -10,6 +10,21 @@ client = boto3.client('s3')
 
 
 def lambda_handler(event: Dict[str, any], context):
+    """
+    AWS Lambda entry point.
+
+    This function is called when the Lambda service is invoked.
+
+    Returns the specified S3 buckets encryption status
+    --
+    OR
+    --
+    Returns all S3 bucket encryption statuses if no bucket names are specified.
+
+    :param event: The event from the AWS API gateway.
+    :param context: AWS context object - Not used.
+    :return: The encryption status of S3 buckets.
+    """
     if buckets_specified_in(event):
         bucket_encryption_status = get_specified_bucket_status(buckets=event["Buckets"])
     else:
