@@ -20,5 +20,5 @@ variable "aws_region" {
 
 variable "aws_account" {
   type = string
-  string = "Account to deploy in"
+  description = "Account to deploy in"
 }
