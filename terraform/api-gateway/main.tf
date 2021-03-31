@@ -1,23 +1,19 @@
+//Create API gateway
 resource "aws_api_gateway_rest_api" "api_gateway" {
   name = var.api_gateway_name
-    endpoint_configuration {
+  endpoint_configuration {
     types = ["REGIONAL"]
   }
 }
 
+//Create gateway resource
 resource "aws_api_gateway_resource" "api_gateway_resource" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
   path_part   = "demo"
 }
 
-//resource "aws_api_gateway_method" "get-method" {
-//  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-//  resource_id   = aws_api_gateway_resource.api_gateway_resource.id
-//  http_method   = "GET"
-//  authorization = "NONE"
-//}
-
+//Create POST method
 resource "aws_api_gateway_method" "post-method" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
   resource_id   = aws_api_gateway_resource.api_gateway_resource.id
@@ -25,15 +21,7 @@ resource "aws_api_gateway_method" "post-method" {
   authorization = "NONE"
 }
 
-//resource "aws_api_gateway_integration" "get-integration" {
-//  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-//  resource_id             = aws_api_gateway_resource.api_gateway_resource.id
-//  http_method             = aws_api_gateway_method.get-method.http_method
-//  integration_http_method = "GET"
-//  type                    = "AWS"
-//  uri                     = var.lambda_arn
-//}
-
+//Integrate POST method with lambda
 resource "aws_api_gateway_integration" "post-integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
   resource_id             = aws_api_gateway_resource.api_gateway_resource.id
@@ -43,16 +31,7 @@ resource "aws_api_gateway_integration" "post-integration" {
   uri                     = var.lambda_arn
 }
 
-resource "aws_lambda_permission" "apigw_lambda" {
-  statement_id  = "AllowExecutionFromAPIGateway"
-  action        = "lambda:InvokeFunction"
-  function_name = var.lambda_function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
-  source_arn = "arn:aws:execute-api:${var.aws_region}:${var.aws_account}:${aws_api_gateway_rest_api.api_gateway.id}/*/${aws_api_gateway_method.post-method.http_method}${aws_api_gateway_resource.api_gateway_resource.path}"
-}
-
+//Define method response for status code 200
 resource "aws_api_gateway_method_response" "gateway_method_response" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   resource_id = aws_api_gateway_resource.api_gateway_resource.id
@@ -60,16 +39,27 @@ resource "aws_api_gateway_method_response" "gateway_method_response" {
   status_code = "200"
 }
 
-resource "aws_api_gateway_integration_response" "gateway_integration_response" {
+//Define method response for status code 400
+resource "aws_api_gateway_method_response" "gateway_method_response_error" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   resource_id = aws_api_gateway_resource.api_gateway_resource.id
   http_method = aws_api_gateway_method.post-method.http_method
-  status_code = aws_api_gateway_method_response.gateway_method_response.status_code
+  status_code = "400"
+}
+
+//Integration response for status code 400
+resource "aws_api_gateway_integration_response" "gateway_integration_response" {
+  rest_api_id       = aws_api_gateway_rest_api.api_gateway.id
+  resource_id       = aws_api_gateway_resource.api_gateway_resource.id
+  http_method       = aws_api_gateway_method.post-method.http_method
+  status_code       = aws_api_gateway_method_response.gateway_method_response_error.status_code
+  selection_pattern = "Bad Input.*"
   depends_on = [
     aws_api_gateway_integration.post-integration
   ]
 }
 
+//Deployment for the rest api
 resource "aws_api_gateway_deployment" "gateway_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   depends_on = [
@@ -78,6 +68,7 @@ resource "aws_api_gateway_deployment" "gateway_deployment" {
   ]
 }
 
+//Stage for rest api
 resource "aws_api_gateway_stage" "api_gateway_stage" {
   deployment_id = aws_api_gateway_deployment.gateway_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -86,4 +77,14 @@ resource "aws_api_gateway_stage" "api_gateway_stage" {
     # a new deployment needs to be created on every resource change so we do it outside of terraform
     ignore_changes = [deployment_id]
   }
+}
+
+//Give permission to gateway to invoke lambda
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn = "arn:aws:execute-api:${var.aws_region}:${var.aws_account}:${aws_api_gateway_rest_api.api_gateway.id}/*/${aws_api_gateway_method.post-method.http_method}${aws_api_gateway_resource.api_gateway_resource.path}"
+  depends_on = [aws_api_gateway_rest_api.api_gateway]
 }

@@ -18,6 +18,7 @@ data "aws_iam_policy_document" "aws_lambda_function_assume_role_policy_doc" {
   }
 }
 
+//Minimum policies needed by Lambda to access S3
 resource "aws_iam_policy" "encryption_checker_policy" {
   name        = "test-policy"
   description = "A test policy"
@@ -43,6 +44,7 @@ resource "aws_iam_policy" "encryption_checker_policy" {
 EOF
 }
 
+//Attach policy to role
 resource "aws_iam_role_policy_attachment" "attach_encryption_policy" {
   role       = aws_iam_role.aws_lambda_function_role.name
   policy_arn = aws_iam_policy.encryption_checker_policy.arn
@@ -50,14 +52,14 @@ resource "aws_iam_role_policy_attachment" "attach_encryption_policy" {
 
 //////////////////////////// LAMBDA FUNCTION CODE ////////////////////////////
 
-//we create the deployment package for the lambda function
+//Create the deployment package for the lambda function
 data "archive_file" "aws_lambda_function_zip" {
   type        = "zip"
-  source_dir  = "../encryption-checker-lambda"
+  source_dir  = var.source_dir
   output_path = "temp/${local.aws_lambda_function_name}.zip"
 }
 
-//we define the lambda function, based on the deployment package
+//Lambda function definition
 resource "aws_lambda_function" "aws_lambda_function" {
   function_name    = local.aws_lambda_function_name
   handler          = var.handler

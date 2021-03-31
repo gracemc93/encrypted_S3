@@ -1,3 +1,4 @@
+//S3 bucket with encryption enabled
 resource "aws_s3_bucket" "s3-bucket-encrypted" {
   bucket = "${var.bucket_name}-1"
   region = var.aws_region
@@ -10,12 +11,13 @@ resource "aws_s3_bucket" "s3-bucket-encrypted" {
   }
 }
 
+//S3 bucket with encryption disabled
 resource "aws_s3_bucket" "s3-bucket-non-encrypted" {
   bucket = "${var.bucket_name}-2"
   region = var.aws_region
 }
 
-
+//Block public access
 resource "aws_s3_bucket_public_access_block" "bucket_access_encrypted" {
   bucket                  = aws_s3_bucket.s3-bucket-encrypted.bucket
   block_public_acls       = true
