@@ -47,7 +47,7 @@ resource "aws_api_gateway_method_response" "gateway_method_response_error" {
   status_code = "400"
 }
 
-//Integration response for status code 400
+//Integration response for status code 200
 resource "aws_api_gateway_integration_response" "gateway_integration_response" {
   rest_api_id       = aws_api_gateway_rest_api.api_gateway.id
   resource_id       = aws_api_gateway_resource.api_gateway_resource.id
