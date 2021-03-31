@@ -38,17 +38,17 @@ A simple lambda was created, written in python. The lambda takes a JSON object.
 2. If the object contains a list of buckets (1 or more bucket names) it will return that bucket(s) with the encryption status.
 This Lambda's role is granted permission to `GetEncryptionConfiguration` and `ListAllMyBuckets`
 
-## Gateway API
+### Gateway API
 A Gateway API to provide an endpoint to access the lambda as a REST API.
 
-## S3 Buckets
+### S3 Buckets
 Two S3 buckets were created to test on. One which is encrypted and one not encrypted. 
 
-## Integration Tests
+### Integration Tests
 **Please Note:** For the integration tests, the resources need to be deployed. You will need to be logged in via the AWS CLI and have Terraform installed.
 These send requests to the API Gateway via the invoke URL created. These tests excercise the whole system, and test the communication and permissions between the resources.
 
-## Unit Tests
+### Unit Tests
 The unit tests test the lambda functionality itself locally. It does not need to be deployed. 
 
 ## How To Run
