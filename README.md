@@ -29,7 +29,7 @@ Create (or just design) a simple REST API around the lambda function that can re
 ## Solution
 
 ### Terraform
-Terraform is an open source, infrastrucure as code tool which can be used to deploy and maintain your AWS infrastucture.
+Terraform is an open source, infrastructure as code tool which can be used to deploy and maintain your AWS infrastucture.
 The deploymeny/configuration of the resources used for this assessment is written using terraform, so they can be reproduced.
 
 ### Encryption Checker Lambda 
@@ -49,9 +49,41 @@ Two S3 buckets were created to test on. One which is encrypted and one not encry
 These send requests to the API Gateway via the invoke URL created. These tests excercise the whole system, and test the communication and permissions between the resources.
 
 ### Unit Tests
-The unit tests test the lambda functionality itself locally. It does not need to be deployed. 
+The unit tests test the lambda functionality itself locally. It does not need to be deployed. These are located under:
+`encrypted_S3/test/unittests/`
 
 ## How To Run
+### Prequisites
 In order to run, you will need:
+1. You **MUST update** the var file needed for the Terraform to deploy. You will need to update the `aws_region` and `aws_account` that you want to use. It is located under `encrypted_S3/terraform/test.tfvars`
 1. Terraform installed https://www.terraform.io/downloads.html
 2. AWS CLI installed, and logged into the account you want to deploy to.
+
+### Integration Tests
+The integration tests will create the AWS infrastructure with Terraform and send some requests to the Gateway API via the invoke url. These will test if everything is integrated and the correct permissions are in place to allow communication. It will then tear down the infrastructure. 
+These will take a few minutes to complete.
+
+1. Ensure you have updated the var file detailed in the prequisite section.
+1. Navigate to `encrypted_S3/integration` and run 
+2. Run `pytest -s test_integration.py`
+
+### Terraform
+If you would like to deploy the infrastruture, have a look at it and invoke the API yourself, you need to do the following:
+
+1. Ensure you have updated the var file detailed in the prequisite section.
+2. Navigate to `encrypted_S3/terraform/`
+3. Run `terraform apply --var-file=test-tfvars`
+4. A plan of what is to be created should be displayed, enter Yes to approve.
+5. After they are created, you should see the URL for the REST API in the terminal under Outputs `url_to_encryption_checker`
+6. You will also see two S3 buckets, one is encrypted one is not, you can use those to test the lambda.
+7. Use a tool like Postman to call the API. You should do a POST request. The request body should look like: 
+ 
+ `{
+   "Buckets":[
+      "test_bucket_1",
+      "test_bucket_2"
+   ]
+}`
+
+8. When you are ready to destroy the infrastructure, just run
+ `terraform destroy --var-file=test.tfvars`
