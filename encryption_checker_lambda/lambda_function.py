@@ -20,7 +20,6 @@ def lambda_handler(event: Dict[str, any], context):
     OR
     --
     Returns all S3 bucket encryption statuses if no bucket names are specified.
-f
     :param event: The event from the AWS API gateway.
     :param context: AWS context object - Not used.
     :return: The encryption status of S3 buckets.
