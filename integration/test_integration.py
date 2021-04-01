@@ -45,7 +45,6 @@ def test_api_response_for_no_buckets_request(setup_teardown_aws_resources):
     aws_resource = setup_teardown_aws_resources
     payload = {}
     response = json.loads(requests.post(aws_resource["url_for_api"], payload).text)
-    print("RESP", response)
     assert len(response['body']['Buckets']) > 0
 
 
