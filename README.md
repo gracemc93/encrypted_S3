@@ -58,8 +58,9 @@ The unit tests test the lambda functionality itself locally. It does not need to
 ### Prequisites
 In order to run, you will need:
 1. You **MUST update** the var file needed for the Terraform to deploy. You will need to update the `aws_region` and `aws_account` that you want to use. It is located under `encrypted_S3/terraform/test.tfvars`
-1. Terraform installed https://www.terraform.io/downloads.html
-2. AWS CLI installed, and logged into the account you want to deploy to.
+2. Terraform installed https://www.terraform.io/downloads.html
+3. AWS CLI installed, and logged into the account you want to deploy to.
+4. Install the provided requirements.txt
 
 ### Integration Tests
 The integration tests will create the AWS infrastructure with Terraform and send some requests to the Gateway API via the invoke url. These will test if everything is integrated and the correct permissions are in place to allow communication. It will then tear down the infrastructure. 
