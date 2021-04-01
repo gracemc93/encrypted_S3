@@ -2,6 +2,9 @@ import pytest
 from python_terraform import *
 import requests
 
+# ======================================================================================================================
+# Test Fixtures
+# ======================================================================================================================
 
 @pytest.fixture(scope="session")
 def aws_resource_factory():
@@ -35,6 +38,9 @@ def setup_teardown_aws_resources(aws_resource_factory):
     print("Destroying AWS resources...")
     tf.destroy(input=False, capture_output=False)
 
+# ======================================================================================================================
+# Integration Tests
+# ======================================================================================================================
 
 def test_api_response_for_no_buckets_request(setup_teardown_aws_resources):
     """

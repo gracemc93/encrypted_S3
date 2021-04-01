@@ -1,8 +1,9 @@
-//File from which we call the
 locals {
   bucket_name                    = "s3-${var.aws_region}-${terraform.workspace}-encrypted-bucket-test"
   encryption_checker_api_gateway = "api-${var.aws_region}-${terraform.workspace}-encryption-checker"
 }
+
+//Setup the encryption checker lambda
 module "encryption_checker_lambda" {
   aws_region    = var.aws_region
   source        = "./lambda"
@@ -13,12 +14,14 @@ module "encryption_checker_lambda" {
   source_dir = "../encryption_checker_lambda"
 }
 
+//Setup up the encrypted test bucket
 module "encrypted_s3_bucket" {
   source      = "./s3"
   aws_region  = var.aws_region
   bucket_name = local.bucket_name
 }
 
+//Setup the Gateway API for the Lambda
 module "encryption_checker_api" {
   source               = "./api-gateway"
   api_gateway_name     = local.encryption_checker_api_gateway
