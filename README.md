@@ -30,7 +30,7 @@ Create (or just design) a simple REST API around the lambda function that can re
 
 ### Terraform
 Terraform is an open source, infrastructure as code tool which can be used to deploy and maintain your AWS infrastucture.
-The deploymeny/configuration of the resources used for this assessment is written using terraform, so they can be reproduced.
+The deployment/configuration of the resources used for this assessment is written using terraform, so they can be reproduced.
 
 ### Encryption Checker Lambda 
 A simple lambda was created, written in python. The lambda takes a JSON object.
@@ -51,6 +51,8 @@ These send requests to the API Gateway via the invoke URL created. These tests e
 ### Unit Tests
 The unit tests test the lambda functionality itself locally. It does not need to be deployed. These are located under:
 `encrypted_S3/test/unittests/`
+
+![alt text](coverage_report.PNG?raw=true)
 
 ## How To Run
 ### Prequisites
