@@ -34,8 +34,8 @@ The deployment/configuration of the resources used for this assessment is writte
 
 ### Encryption Checker Lambda 
 A simple lambda was created, written in python. The lambda takes a JSON object.
-1. If the object is empty, the lambda will return all buckets in the account and whether they are encrypted or not encrypted.
-2. If the object contains a list of buckets (1 or more bucket names) it will return that bucket(s) with the encryption status.
+1. If empty, the lambda will return all buckets in the account and whether they are encrypted or not encrypted.
+2. If it contains a list of buckets (1 or more bucket names) it will return the bucket(s) with the encryption status.
 This Lambda's role is granted permission to `GetEncryptionConfiguration` and `ListAllMyBuckets`
 
 ### Gateway API
@@ -45,11 +45,10 @@ A Gateway API to provide an endpoint to access the lambda as a REST API.
 Two S3 buckets were created to test on. One which is encrypted and one not encrypted. 
 
 ### Integration Tests
-**Please Note:** For the integration tests, the resources need to be deployed. You will need to be logged in via the AWS CLI and have Terraform installed.
-These send requests to the API Gateway via the invoke URL created. These tests excercise the whole system, and test the communication and permissions between the resources.
+These send requests to the API Gateway via the invoke URL created. These tests excercise the whole infrastrucuture, and test the communication and permissions between the resources.
 
 ### Unit Tests
-The unit tests test the lambda functionality itself locally. It does not need to be deployed. These are located under:
+The unit tests test the lambda code functionality itself locally. These are located under:
 `encrypted_S3/test/unittests/`
 
 ![alt text](coverage_report.PNG?raw=true)
@@ -57,7 +56,7 @@ The unit tests test the lambda functionality itself locally. It does not need to
 ## How To Run
 ### Prequisites
 In order to run, you will need:
-1. You **MUST update** the var file needed for the Terraform to deploy. You will need to update the `aws_region` and `aws_account` that you want to use. It is located under `encrypted_S3/terraform/test.tfvars`
+1. You **MUST update** the var file needed for the Terraform to deploy. You will need to update the `aws_region` and `aws_account` to where you want to deploy. It is located under `encrypted_S3/terraform/test.tfvars`
 2. Terraform installed https://www.terraform.io/downloads.html
 3. AWS CLI installed, and logged into the account you want to deploy to.
 4. Install the provided requirements.txt
@@ -71,7 +70,7 @@ These will take a few minutes to complete.
 2. Run `pytest -s test_integration.py`
 
 ### Terraform
-If you would like to deploy the infrastruture, have a look at it and invoke the API yourself, you need to do the following:
+If you would like to deploy the infrastructure, have a look at it and invoke the API yourself, you need to do the following:
 
 1. Ensure you have updated the var file detailed in the prequisite section.
 2. Navigate to `encrypted_S3/terraform/`
@@ -79,12 +78,12 @@ If you would like to deploy the infrastruture, have a look at it and invoke the 
 4. A plan of what is to be created should be displayed, enter Yes to approve.
 5. After they are created, you should see the URL for the REST API in the terminal under Outputs `url_to_encryption_checker`
 6. You will also see two S3 buckets, one is encrypted one is not, you can use those to test the lambda.
-7. Use a tool like Postman to call the API. You should do a POST request. The request body should look like: 
+7. Use a tool like Postman to call the API. You should do a POST request. An example of the request body should look like: 
  
  `{
    "Buckets":[
-      "test_bucket_1",
-      "test_bucket_2"
+      "some_bucket_name_1",
+      "some_bucket_name_2"
    ]
 }`
 
