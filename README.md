@@ -16,10 +16,6 @@ Create a simple AWS lambda function that shows the encryption status of S3 bucke
 
 Write at least one unit and integration test for the lambda.
 
- 
-
-**Bonus points**
-
 Create (or just design) a simple REST API around the lambda function that can return:
 
 * All S3 buckets
